@@ -1,7 +1,10 @@
+from qiskit import QuantumProgram
+import Qconfig
 import random
 import cv2
 import datetime
 import numpy as np
+import sys
 from prime_factorization.factorizer import PrimeFactorizer
 from finger_counter.finger_counter import FingerCounter
 from collections import Counter
@@ -64,7 +67,7 @@ measure q[2] -> c[0];
 def q_add_mod_5(a, b):
     acc = a
     for _ in range(b):
-        acc = q_add_one(acc)
+        acc = q_add_one_mod_5(acc)
     return acc
 
 def generate_numbers_to_guess():
@@ -83,10 +86,22 @@ def main():
     font = cv2.FONT_HERSHEY_SIMPLEX
     fx, fy, fh = 10, 50, 45
     x0 = y0 = 100
-    text_color = (0, 255, 0)
+    text_color = (0, 0, 255)
 
+    # Setting up the camera.
+    cam = cv2.VideoCapture(0)
+    # Setting up the interface.
+    window = cv2.namedWindow('window', cv2.WINDOW_NORMAL)
 
+    first_round = True
     while True:
+        '''
+        if not first_round:
+            ret, frame = cam.read()
+            xx, yy, _ = frame.shape
+            cv2.putText(frame, score, (xx//2, yy//2), font, 1.2, text_color, 2, 1)
+            cv2.imshow("window", frame)   
+        '''
         number_a, number_b = generate_numbers_to_guess()
         solution = q_add_mod_5(number_a, number_b)
         text = 'Solve {} + {} mod 5'.format(number_a, number_b)
@@ -94,14 +109,7 @@ def main():
 
         finger_counter = FingerCounter()
 
-        # Setting up the camera.
-        cam = cv2.VideoCapture(0)
-        # Setting up the interface.
-        window = cv2.namedWindow('window', cv2.WINDOW_NORMAL)
-        cv2.imshow("window", frame)
-        cv2.putText(window, text, (fx,fy), font, 1.2, text_color, 2, 1)
-        cv2.waitKey(2)
-
+        first_guessed = False
         try:
             # Start measuring time.
             start_time = datetime.datetime.now()
@@ -115,12 +123,21 @@ def main():
                     # Take picture and predict.
                     count = finger_counter.count(frame)
                     print('count', count)
-                    if count is not None:
-                        guess = count
-                if key == ord('q'):
+                    guess = count
+                    first_guessed = True
+                elif key == ord('q'):
+                    first_guessed = False
                     break
+                elif key == ord('e'):
+                    cam.release()
+                    cv2.destroyAllWindows()
+                    sys.exit(0)
                 else:
+                    if first_guessed:
+                        cv2.putText(frame, str(count), (fx,fy+40), font, 1.2, text_color, 2, 1)  
                     cv2.rectangle(frame, (x0, y0), (x0 + 300 - 1, y0 + 300 - 1), [0, 0, 255], 12)
+                    cv2.putText(frame, text, (fx,fy), font, 1.2, text_color, 2, 1)
+                    
                     cv2.imshow("window", frame)
                     continue
         except Exception as e:
@@ -134,13 +151,17 @@ def main():
         print(total_time)
         # Compare the users guess with the result.
         if guess == solution:
-            score = total_time
+            score = 'Score: {:.2f}'.format(total_time)
         else:
-            score = "I don’t like tests. That's why I didn't go to college. Don't test me, because I will fail a majority of the time."
+            score = "I don't like tests."
 
         print('score', score)
-        cam.release()
-        cv2.destroyAllWindows()
+        first_round = False
+        xx, yy, _ = frame.shape
+        cv2.putText(frame, score, (xx//2, yy//2), font, 1.2, text_color, 2, 1)
+        cv2.imshow("window", frame)
+        cv2.waitKey(0)
+            
 
 if __name__ == '__main__':
     main()
