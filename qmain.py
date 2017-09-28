@@ -83,6 +83,8 @@ def calc_solution(number_a, number_b):
     return solution
 
 def main():
+    player_one_score = 0
+    player_two_score = 0
     font = cv2.FONT_HERSHEY_SIMPLEX
     fx, fy, fh = 10, 50, 45
     x0 = y0 = 100
@@ -161,7 +163,83 @@ def main():
         cv2.putText(frame, score, (xx//2, yy//2), font, 1.2, text_color, 2, 1)
         cv2.imshow("window", frame)
         cv2.waitKey(0)
-            
+        player_one_score += score
+
+        key = cv2.waitKey(1) & 0xff
+        if key == ord('p'):
+
+            # Player two
+            first_round = True
+            while True:
+                '''
+                if not first_round:
+                    ret, frame = cam.read()
+                    xx, yy, _ = frame.shape
+                    cv2.putText(frame, score, (xx//2, yy//2), font, 1.2, text_color, 2, 1)
+                    cv2.imshow("window", frame)   
+                '''
+                number_a, number_b = generate_numbers_to_guess()
+                solution = q_add_mod_5(number_a, number_b)
+                text = 'Solve {} + {} mod 5'.format(number_a, number_b)
+                print(text)
+
+                finger_counter = FingerCounter()
+
+                first_guessed = False
+                try:
+                    # Start measuring time.
+                    start_time = datetime.datetime.now()
+                    while True:
+                        ret, frame = cam.read()
+                        frame = cv2.flip(frame, 1)
+                        key = cv2.waitKey(1) & 0xff
+                        # Let the user put his hand in the rectangle/ in front of the camera and let him press space whenever
+                        # he wants to enter a new number. Press q once done.
+                        if key == ord(' '):
+                            # Take picture and predict.
+                            count = finger_counter.count(frame)
+                            print('count', count)
+                            guess = count
+                            first_guessed = True
+                        elif key == ord('q'):
+                            first_guessed = False
+                            break
+                        elif key == ord('e'):
+                            cam.release()
+                            cv2.destroyAllWindows()
+                            sys.exit(0)
+                        else:
+                            if first_guessed:
+                                cv2.putText(frame, str(count), (fx, fy + 40), font, 1.2, text_color, 2, 1)
+                            cv2.rectangle(frame, (x0, y0), (x0 + 300 - 1, y0 + 300 - 1), [0, 0, 255], 12)
+                            cv2.putText(frame, text, (fx, fy), font, 1.2, text_color, 2, 1)
+
+                            cv2.imshow("window", frame)
+                            continue
+                except Exception as e:
+                    cam.release()
+                    cv2.destroyAllWindows()
+                    raise e
+
+                # End measuring time.
+                end_time = datetime.datetime.now()
+                total_time = (end_time - start_time).total_seconds()
+                print(total_time)
+                # Compare the users guess with the result.
+                if guess == solution:
+                    score = 'Score: {:.2f}'.format(total_time)
+                else:
+                    score = "I don't like tests."
+                print('score', score)
+                first_round = False
+                xx, yy, _ = frame.shape
+                cv2.putText(frame, score, (xx // 2, yy // 2), font, 1.2, text_color, 2, 1)
+                cv2.imshow("window", frame)
+                cv2.waitKey(0)
+                player_two_score += score
+                print("P1: {}\nP2: {}".format(player_one_score, player_two_score))
+            else:
+                continue
 
 if __name__ == '__main__':
     main()
