@@ -141,9 +141,9 @@ class Mod5Game(Game):
 
 class QuantumMod5Game(Game):
     def get_solution(self, number_a, number_b):
-        acc = a
-        for _ in range(b):
-            acc = q_add_one_mod_5(acc)
+        acc = number_a
+        for _ in range(number_b):
+            acc = self.q_add_one_mod_5(acc)
         return acc
 
     def q_add_one_mod_5(self, n):
