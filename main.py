@@ -5,6 +5,7 @@ import numpy as np
 from prime_factorization.factorizer import PrimeFactorizer
 from finger_counter.finger_counter import FingerCounter
 
+
 def score_it(answers, player_answers, player_time):
     def wrong(ans, play):
         error = 0
@@ -14,13 +15,13 @@ def score_it(answers, player_answers, player_time):
         return error
 
     score = player_time * (
-    1 + ((np.abs(len(answers) - len(player_answers)) + (wrong(answers, player_answers))) / len(answers)) * 2)
+            1 + ((np.abs(len(answers) - len(player_answers)) + (wrong(answers, player_answers))) / len(answers)) * 2)
 
     return score
 
 
 def weight_score(factors, guesses, time_taken):
-    """Weigth score according to how many primes were missed.
+    """Weight score according to how many primes were missed.
     Each number missed and each wrong number is punished once.
     """
     n_to_guess = len(factors)
@@ -39,13 +40,19 @@ def weight_score(factors, guesses, time_taken):
     else:
         return None
 
+def cleanup(cam):
+    cam.release()
+    cv2.destroyAllWindows()
+
+def game_loop():
+    pass
 
 def main():
     font = cv2.FONT_HERSHEY_SIMPLEX
     fx, fy, fh = 10, 50, 45
-    x0 = y0 = 100
+    x0 = 100
+    y0 = 100
     text_color = (0, 255, 0)
-
 
     while True:
         number_to_factorize = random.randint(2, 9)
@@ -60,10 +67,9 @@ def main():
         cam = cv2.VideoCapture(0)
 
         window = cv2.namedWindow('window', cv2.WINDOW_NORMAL)
-        # window2 = cv2.namedWindow('WINDOW2', cv2.WINDOW_NORMAL)
         # Setting up the interface.
         cv2.putText(window, 'factorize: {}'.format(number_to_factorize),
-                    (fx,fy), font, 1.2, text_color, 2, 1)
+                    (fx, fy), font, 1.2, text_color, 2, 1)
         try:
             # Start measuring time.
             start_time = datetime.datetime.now()
@@ -86,12 +92,8 @@ def main():
                     cv2.imshow("WINDOW", frame)
                     continue
         except Exception as e:
-            cam.release()
-            cv2.destroyAllWindows()
+            cleanup(cam)
             raise e
-
-
-
 
         # End measuring time.
         end_time = datetime.datetime.now()
@@ -101,8 +103,8 @@ def main():
         score = score_it(prime_factors, guess, total_time)
         # score = weight_score(prime_factors, guess, total_time)
         print('score', score)
-        cam.release()
-        cv2.destroyAllWindows()
+        cleanup(cam)
+
 
 if __name__ == '__main__':
     main()
