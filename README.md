@@ -10,3 +10,4 @@ Fingers are detected using a slightly modified version of Jared Vasquez's *How M
 Quantum computing is simulated through IBM's QASM.
 
 Neuromorphic computing is simulated through a CNN.
+Get the model [here](https://drive.google.com/file/d/0B5sZ8q5iqYbtRVpqMU4yRlRDdEU/view)
